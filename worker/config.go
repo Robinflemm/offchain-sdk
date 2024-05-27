@@ -1,49 +1,52 @@
 package worker
 
-import "github.com/alitto/pond"
+import (
+	"errors"
+	"github.com/alitto/pond"
+)
 
-// PoolConfig is the configuration for a pool.
+// PoolConfig holds the configuration for a worker pool.
 type PoolConfig struct {
-	// Name is the name of the pool.
-	Name string
-	// PrometheusPrefix is the prefix for the prometheus metrics.
-	PrometheusPrefix string
-	// MinWorkers is the minimum number of workers that the resizer will
-	// shrink the pool down to .
-	MinWorkers uint16
-	// MaxWorkers is the maximum number of workers that can be active
-	// at the same time.
-	MaxWorkers uint16
-	// ResizingStrategy is the methodology used to resize the number of workers
-	// in the pool.
-	ResizingStrategy string
-	// MaxQueuedJobs is the maximum number of jobs that can be queued
-	// before the pool starts rejecting jobs.
-	MaxQueuedJobs uint16
+	Name             string // Name of the pool
+	PrometheusPrefix string // Prefix for Prometheus metrics
+	MinWorkers       uint16 // Minimum number of workers in the pool
+	MaxWorkers       uint16 // Maximum number of workers in the pool
+	ResizingStrategy string // Strategy for resizing the number of workers
+	MaxQueuedJobs    uint16 // Maximum number of jobs that can be queued
 }
 
-// DefaultPoolConfig is the default configuration for a pool.
+// Default values for PoolConfig
+const (
+	DefaultName             = "default"
+	DefaultPrometheusPrefix = "default"
+	DefaultMinWorkers       = 4
+	DefaultMaxWorkers       = 32
+	DefaultResizingStrategy = "balanced"
+	DefaultMaxQueuedJobs    = 100
+)
+
+// DefaultPoolConfig returns a PoolConfig with default values.
 func DefaultPoolConfig() *PoolConfig {
 	return &PoolConfig{
-		Name:             "default",
-		PrometheusPrefix: "default",
-		MinWorkers:       4,  //nolint:gomnd // it's ok.
-		MaxWorkers:       32, //nolint:gomnd // it's ok.
-		ResizingStrategy: "balanced",
-		MaxQueuedJobs:    100, //nolint:gomnd // it's ok.
+		Name:             DefaultName,
+		PrometheusPrefix: DefaultPrometheusPrefix,
+		MinWorkers:       DefaultMinWorkers,
+		MaxWorkers:       DefaultMaxWorkers,
+		ResizingStrategy: DefaultResizingStrategy,
+		MaxQueuedJobs:    DefaultMaxQueuedJobs,
 	}
 }
 
-// resizerFromString returns a pond resizer for the given name.
-func resizerFromString(name string) pond.ResizingStrategy {
+// resizerFromString returns a pond.ResizingStrategy based on the given name.
+func resizerFromString(name string) (pond.ResizingStrategy, error) {
 	switch name {
 	case "eager":
-		return pond.Eager()
+		return pond.Eager(), nil
 	case "lazy":
-		return pond.Lazy()
+		return pond.Lazy(), nil
 	case "balanced":
-		return pond.Balanced()
+		return pond.Balanced(), nil
 	default:
-		panic("invalid resizer name")
+		return nil, errors.New("invalid resizer name")
 	}
 }
